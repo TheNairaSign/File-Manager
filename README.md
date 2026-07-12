@@ -6,18 +6,18 @@ The application is designed to handle everything from basic file operations to l
 
 ## Features
 
-* 📂 Browse internal and external storage
-* 🔍 Fast file and folder search
-* 📄 Create, rename, move, copy, and delete files and directories
-* 🗜️ ZIP compression and extraction
-* 🖼️ Thumbnail generation for images and videos
-* 📊 Storage usage analysis and statistics
-* 📁 Categorized views (Images, Videos, Audio, Documents, APKs, Archives)
-* ⭐ Favorites and Recent Files
-* 🔄 Batch file operations
-* 🔐 Secure file handling and permission management
-* ⚡ Native Java-powered file scanning for improved performance
-* 📱 Modern Flutter-based user interface
+* Browse internal and external storage
+* Fast file and folder search
+* Create, rename, move, copy, and delete files and directories
+* ZIP compression and extraction
+* Thumbnail generation for images and videos
+* Storage usage analysis and statistics
+* Categorized views (Images, Videos, Audio, Documents, APKs, Archives)
+* Favorites and Recent Files
+* Batch file operations
+* Secure file handling and permission management
+* Native Java-powered file scanning for improved performance
+* Modern Flutter-based user interface
 
 ## Tech Stack
 

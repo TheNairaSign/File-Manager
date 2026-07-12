@@ -54,7 +54,7 @@ This mirrors how most production-grade Android file managers are actually struct
 
 ## 2. High-Level Phases
 
-- [ ] Phase 0 — Project setup & scaffolding
+- [x] Phase 0 — Project setup & scaffolding
 - [ ] Phase 1 — Permissions (the unglamorous but critical first real step)
 - [ ] Phase 2 — Platform Channel contract (Java ⟷ Dart bridge)
 - [ ] Phase 3 — Core file listing (read-only browsing, paginated)
