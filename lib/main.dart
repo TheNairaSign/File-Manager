@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'File Manager',
       theme: lightThemeData,
       darkTheme: darkThemeData,
+      themeMode: ThemeMode.dark,
       home: const BrowserPage(),
     );
   }

@@ -4,7 +4,33 @@ enum MediaTypeItemType {
   audio,
   video,
   image,
-  document,
+  document;
+
+  String get svgAsset {
+    switch (this) {
+      case MediaTypeItemType.audio:
+        return 'assets/svgs/music.svg';
+      case MediaTypeItemType.video:
+        return 'assets/svgs/music.svg';
+      case MediaTypeItemType.image:
+        return 'assets/svgs/music.svg';
+      case MediaTypeItemType.document:
+        return 'assets/svgs/music.svg';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case MediaTypeItemType.audio:
+        return Colors.red;
+      case MediaTypeItemType.video:
+        return Colors.blue;
+      case MediaTypeItemType.image:
+        return Colors.green;
+      case MediaTypeItemType.document:
+        return Colors.yellow;
+    }
+  }
 }
 
 class MediaCategory {

@@ -1,8 +1,8 @@
 import 'package:file_manager/features/browser/dialogs/create_folder_dialog.dart';
 import 'package:file_manager/features/browser/presentation/widgets/file_item_container.dart';
 import 'package:file_manager/features/browser/media_category.dart';
-import 'package:file_manager/features/browser/presentation/providers/media_provider.dart';
-import 'package:file_manager/features/browser/presentation/pages/media_category_page.dart';
+import 'package:file_manager/features/browser/presentation/widgets/media_card.dart';
+import 'package:file_manager/widgets/browse_search_bar.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -148,50 +148,44 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
             ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        if (state.currentPath.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back),
-                            onPressed: () => notifier.navigateUp(),
-                          ),
-                        Text(
-                          'File Explorer',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const CircleAvatar(
-                      child: Icon(Icons.person,),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     Row(
+                //       children: [
+                //         if (Navigator.canPop(context))
+                //           IconButton(
+                //             icon: const Icon(Icons.arrow_back),
+                //             onPressed: () => Navigator.maybePop(context),
+                //           ),
+                //         Text(
+                //           widget.path.isEmpty
+                //               ? 'File Explorer'
+                //               : (widget.path.split('/').where((p) => p.isNotEmpty).isNotEmpty
+                //                   ? widget.path.split('/').where((p) => p.isNotEmpty).last
+                //                   : 'File Explorer'),
+                //           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                //             fontSize: 22,
+                //             fontWeight: FontWeight.bold,
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //     // const CircleAvatar(
+                //     //   child: Icon(Icons.person),
+                //     // ),
+                //   ],
+                // ),
                 const SizedBox(height: 16),
                 // Search Bar
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onSubmitted: (query) {
-                      notifier.search(query);
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Search',
-                      prefixIcon: Icon(Icons.search, color: Colors.grey),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
+               BrowseSearchBar(
+                path: widget.path,
+                controller: _searchController,
+                onSubmitted: (query) {
+                  notifier.search(query);
+                },
+                hintText: 'Search files in ${widget.path}',
+               ),
                 const SizedBox(height: 16),
                 // Tabs and View Toggle
                 Row(
@@ -258,9 +252,7 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
               children: [
                 Text(
                   'Media Categories',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
                 GridView.count(
@@ -269,37 +261,15 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1.5,
-                  children: [
-                    _buildMediaCard(
-                      context,
-                      title: 'Audio',
-                      icon: Icons.music_note,
-                      color: Colors.red,
-                      type: MediaTypeItemType.audio,
-                    ),
-                    _buildMediaCard(
-                      context,
-                      title: 'Video',
-                      icon: Icons.videocam,
-                      color: Colors.blue,
-                      type: MediaTypeItemType.video,
-                    ),
-                    _buildMediaCard(
-                      context,
-                      title: 'Image',
-                      icon: Icons.image,
-                      color: Colors.green,
-                      type: MediaTypeItemType.image,
-                    ),
-                    _buildMediaCard(
-                      context,
-                      title: 'Document',
-                      icon: Icons.description,
-                      color: Colors.amber,
-                      type: MediaTypeItemType.document,
-                    ),
-                  ],
+                  childAspectRatio: 2.3,
+                  children: MediaTypeItemType.values.map((type) {
+                    return MediaCard(
+                      mediaType: type,
+                      title: type.name,
+                      asset: type.svgAsset,
+                      color: type.color,
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -368,79 +338,6 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildMediaCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required MediaTypeItemType type,
-  }) {
-    final mediaState = ref.watch(mediaProviderFor(type));
-
-    final countText = mediaState.isLoading
-        ? 'Loading...'
-        : mediaState.error != null
-            ? 'Error'
-            : '${mediaState.files.length} files';
-
-    return Card(
-      elevation: 0,
-      color: color.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MediaCategoryPage(
-                categoryType: type,
-                title: title,
-              ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: Colors.white, size: 24),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    countText,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
