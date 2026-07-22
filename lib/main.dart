@@ -1,3 +1,5 @@
+import 'package:file_manager/core/theme/dark_theme.dart';
+import 'package:file_manager/core/theme/light_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_manager/features/browser/presentation/pages/browser_page.dart';
@@ -19,10 +21,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'File Manager',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
       home: const BrowserPage(),
     );
   }

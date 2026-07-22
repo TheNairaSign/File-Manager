@@ -1,4 +1,4 @@
-import 'package:file_manager/core/platform/file_channel.dart';
+import 'package:file_manager/models/file_item.dart';
 
 abstract class FileOperationsState {}
 

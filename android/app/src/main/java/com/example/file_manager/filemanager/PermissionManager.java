@@ -264,9 +264,9 @@ public class PermissionManager {
                 && Environment.isExternalStorageManager();
 
         Map<String, Object> response = new HashMap<>();
-        response.put("granted",           granted);
+        response.put("granted", granted);
         response.put("permanentlyDenied", false);  // settings page can always be reopened
-        response.put("status",            granted ? "granted" : "denied");
+        response.put("status", granted ? "granted" : "denied");
 
         pendingResult.success(response);
         pendingResult = null;

@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.webkit.MimeTypeMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * listDirectory uses File API (reliable across all paths, paginated).
  * searchFiles uses MediaStore for media types, File API for everything else.
  */
-public class Scanner {
+public class FileScanner {
 
     private final Context context;
 
@@ -42,7 +43,7 @@ public class Scanner {
     public static final String SORT_DATE_ASC   = "date_asc";
     public static final String SORT_DATE_DESC  = "date_desc";
 
-    public Scanner(Context context) {
+    public FileScanner(Context context) {
         this.context = context;
     }
 
@@ -71,31 +72,15 @@ public class Scanner {
             String sortOrder
     ) throws Exception {
 
-        File directory = new File(directoryPath);
-
-        if (!directory.exists()) {
-            throw new Exception("Directory not found: " + directoryPath);
-        }
-        if (!directory.isDirectory()) {
-            throw new Exception("Path is not a directory: " + directoryPath);
-        }
-        if (!directory.canRead()) {
-            throw new Exception("Permission denied reading: " + directoryPath);
-        }
-
-        File[] allFiles = directory.listFiles();
-        if (allFiles == null) {
-            // listFiles() returns null on I/O error (not just empty dir)
-            throw new Exception("Could not read directory contents: " + directoryPath);
-        }
+        File[] allFiles = getFiles(directoryPath);
 
         // Sort before paginating — result must be stable across pages
         List<File> sorted = sortFiles(allFiles, sortOrder);
 
         // Paginate
         int totalCount = sorted.size();
-        int fromIndex  = page * pageSize;
-        int toIndex    = Math.min(fromIndex + pageSize, totalCount);
+        int fromIndex = page * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalCount);
         boolean hasMore = toIndex < totalCount;
 
         List<Map<String, Object>> items = new ArrayList<>();
@@ -113,6 +98,62 @@ public class Scanner {
         result.put("hasMore", hasMore);
         return result;
     }
+
+    private static File @NotNull [] getFiles(String directoryPath) throws Exception {
+        final File directory = new File(directoryPath);
+
+        if (!directory.exists()) {
+            throw new Exception("Directory not found: " + directoryPath);
+        }
+        if (!directory.isDirectory()) {
+            throw new Exception("Path is not a directory: " + directoryPath);
+        }
+        if (!directory.canRead()) {
+            throw new Exception("Permission denied reading: " + directoryPath);
+        }
+
+        File[] allFiles = directory.listFiles();
+        if (allFiles == null) {
+            // listFiles() returns null on I/O error (not just empty dir)
+            throw new Exception("Could not read directory contents: " + directoryPath);
+        }
+        return allFiles;
+    }
+
+//    public static List<FolderInfo> getSubFolders(String directoryPath) {
+//
+//        List<FolderInfo> folders = new ArrayList<>();
+//
+//        File directory = new File(directoryPath);
+//
+//        if (!directory.exists() || !directory.isDirectory()) {
+//            return folders;
+//        }
+//
+//        File[] files = directory.listFiles();
+//
+//        if (files == null) {
+//            return folders;
+//        }
+//
+//        for (File file : files) {
+//            if (file.isDirectory()) {
+//
+//                File[] children = file.listFiles();
+//                int itemCount = children == null ? 0 : children.length;
+//
+//                folders.add(
+//                        new FolderInfo(
+//                                file.getName(),
+//                                file.getAbsolutePath(),
+//                                itemCount
+//                        )
+//                );
+//            }
+//        }
+
+//        return folders;
+//    }
 
     // ─── Search ───────────────────────────────────────────────────────────────
 
@@ -157,8 +198,6 @@ public class Scanner {
         return results;
     }
 
-    // ─── Storage volumes ──────────────────────────────────────────────────────
-
     /**
      * Returns available storage volumes (internal + SD card if present).
      * Each map has: "path", "name", "totalBytes", "freeBytes", "isRemovable"
@@ -189,8 +228,6 @@ public class Scanner {
 
         return volumes;
     }
-
-    // ─── Private: MediaStore search ───────────────────────────────────────────
 
     private void searchMediaStore(
             String lowerQuery,
@@ -243,21 +280,21 @@ public class Scanner {
         )) {
             if (cursor == null) return;
 
-            int nameCol     = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
-            int pathCol     = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-            int sizeCol     = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE);
-            int dateCol     = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED);
-            int mimeCol     = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE);
+            int nameCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+            int pathCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+            int sizeCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE);
+            int dateCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED);
+            int mimeCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE);
 
             while (cursor.moveToNext() && !cancellation.get()) {
                 Map<String, Object> item = new HashMap<>();
-                item.put("name",         cursor.getString(nameCol));
-                item.put("path",         cursor.getString(pathCol));
+                item.put("name", cursor.getString(nameCol));
+                item.put("path", cursor.getString(pathCol));
                 item.put("isDirectory",  false);
-                item.put("size",         cursor.getLong(sizeCol));
+                item.put("size", cursor.getLong(sizeCol));
                 // MediaStore stores seconds, FileItem expects milliseconds
                 item.put("lastModified", cursor.getLong(dateCol) * 1000L);
-                item.put("mimeType",     cursor.getString(mimeCol));
+                item.put("mimeType", cursor.getString(mimeCol));
                 results.add(item);
             }
         } catch (Exception e) {
@@ -305,19 +342,19 @@ public class Scanner {
 
         // Directories always come before files regardless of sort order —
         // consistent with how every major file manager handles it
-        List<File> dirs  = new ArrayList<>();
+        List<File> dirs = new ArrayList<>();
         List<File> plain = new ArrayList<>();
         for (File f : files) {
             if (f.isDirectory()) dirs.add(f); else plain.add(f);
         }
 
         Comparator<File> comparator = switch (sortOrder) {
-            case SORT_NAME_DESC  -> (a, b) -> b.getName().compareToIgnoreCase(a.getName());
-            case SORT_SIZE_ASC   -> Comparator.comparingLong(File::length);
-            case SORT_SIZE_DESC  -> (a, b) -> Long.compare(b.length(), a.length());
-            case SORT_DATE_ASC   -> Comparator.comparingLong(File::lastModified);
-            case SORT_DATE_DESC  -> (a, b) -> Long.compare(b.lastModified(), a.lastModified());
-            default              -> (a, b) -> a.getName().compareToIgnoreCase(b.getName()); // SORT_NAME_ASC
+            case SORT_NAME_DESC -> (a, b) -> b.getName().compareToIgnoreCase(a.getName());
+            case SORT_SIZE_ASC -> Comparator.comparingLong(File::length);
+            case SORT_SIZE_DESC -> (a, b) -> Long.compare(b.length(), a.length());
+            case SORT_DATE_ASC -> Comparator.comparingLong(File::lastModified);
+            case SORT_DATE_DESC -> (a, b) -> Long.compare(b.lastModified(), a.lastModified());
+            default -> (a, b) -> a.getName().compareToIgnoreCase(b.getName()); // SORT_NAME_ASC
         };
 
         dirs.sort(comparator);
@@ -328,20 +365,18 @@ public class Scanner {
         return list;
     }
 
-    // ─── Private: helpers ─────────────────────────────────────────────────────
-
     /**
      * Converts a File to the Map structure expected by FileItem.fromMap() in Dart.
      * Fields must exactly match the factory constructor in file_channel.dart.
      */
     private Map<String, Object> fileToMap(File file) {
         Map<String, Object> map = new HashMap<>();
-        map.put("name",         file.getName());
-        map.put("path",         file.getAbsolutePath());
-        map.put("isDirectory",  file.isDirectory());
-        map.put("size",         file.isDirectory() ? 0L : file.length());
+        map.put("name", file.getName());
+        map.put("path", file.getAbsolutePath());
+        map.put("isDirectory", file.isDirectory());
+        map.put("size", file.isDirectory() ? 0L : file.length());
         map.put("lastModified", file.lastModified());  // already milliseconds
-        map.put("mimeType",     file.isDirectory() ? null : getMimeType(file));
+        map.put("mimeType", file.isDirectory() ? null : getMimeType(file));
         return map;
     }
 
@@ -367,10 +402,10 @@ public class Scanner {
 
     private Map<String, Object> buildVolumeMap(File root, String name, boolean isRemovable) {
         Map<String, Object> map = new HashMap<>();
-        map.put("path",        root.getAbsolutePath());
-        map.put("name",        name);
-        map.put("totalBytes",  root.getTotalSpace());
-        map.put("freeBytes",   root.getFreeSpace());
+        map.put("path", root.getAbsolutePath());
+        map.put("name", name);
+        map.put("totalBytes", root.getTotalSpace());
+        map.put("freeBytes", root.getFreeSpace());
         map.put("isRemovable", isRemovable);
         return map;
     }
