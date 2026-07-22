@@ -10,12 +10,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:file_manager/features/browser/presentation/pages/folder_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lottie/lottie.dart';
 
 class FileItemContainer extends ConsumerStatefulWidget {
-  const FileItemContainer({super.key, required this.item, required this.currentPath});
+  const FileItemContainer({
+    super.key,
+    required this.item,
+    required this.currentPath,
+    this.isGrid = false,
+  });
+
   final FileItem item;
   final String currentPath;
+  final bool isGrid;
 
   @override
   ConsumerState<FileItemContainer> createState() => _FileItemContainerState();
@@ -23,10 +29,124 @@ class FileItemContainer extends ConsumerStatefulWidget {
 
 class _FileItemContainerState extends ConsumerState<FileItemContainer> {
   bool tapped = false;
+
+  void _onTap() {
+    if (widget.item.isDirectory) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FolderPage(path: widget.item.path),
+          settings: RouteSettings(name: widget.item.path),
+        ),
+      );
+    } else {
+      // Open/preview non-directory file
+    }
+  }
+
+  void _onMenuSelected(String value, BrowserNotifier notifier) {
+    if (value == 'delete') {
+      showDeleteDialog(context, widget.item, notifier);
+    } else if (value == 'rename') {
+      showRenameDialog(context, widget.item, notifier);
+    } else if (value == 'copy') {
+      notifier.copyItem(widget.item);
+    } else if (value == 'move') {
+      notifier.moveItem(widget.item);
+    }
+  }
+
+  List<PopupMenuEntry<String>> _buildMenuItems() {
+    return const [
+      PopupMenuItem(value: 'copy', child: Text('Copy')),
+      PopupMenuItem(value: 'move', child: Text('Move')),
+      PopupMenuItem(value: 'rename', child: Text('Rename')),
+      PopupMenuItem(
+        value: 'delete',
+        child: Text('Delete', style: TextStyle(color: Colors.red)),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final folderColor = _folderColor(widget.item);
     final notifier = ref.read(browserProviderFor(widget.currentPath).notifier);
+
+    if (widget.isGrid) {
+      return Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: Theme.of(context).colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: _onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      alignment: Alignment.center,
+                      child: widget.item.isDirectory
+                          ? SvgPicture.asset(
+                              'assets/svgs/folder-black.svg',
+                              height: 28,
+                              width: 28,
+                              colorFilter: ColorFilter.mode(
+                                Theme.of(context).colorScheme.onSurface,
+                                BlendMode.srcIn,
+                              ),
+                            )
+                          : MediaIcon.fromItem(widget.item, size: 28),
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 18),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onSelected: (val) => _onMenuSelected(val, notifier),
+                      itemBuilder: (context) => _buildMenuItems(),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.item.isDirectory
+                          ? 'Folder'
+                          : formatBytes(widget.item.size),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -38,74 +158,38 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
           width: 35,
           height: 35,
           decoration: BoxDecoration(
-            // color: folderColor.withValues(alpha: 0.1),
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: widget.item.isDirectory
-            // ? Lottie.asset(
-            //     'assets/lottie/folder-animation.json',
-            //     height: 30,
-            //     width: 30,
-            //     fit: BoxFit.cover,
-            //     animate: false
-            //   )
-            ? SvgPicture.asset(
-              'assets/svgs/folder-black.svg',
-              height: 20,
-              width: 20,
-              colorFilter: .mode(Theme.of(context).colorScheme.onSurface, .srcIn),
-            )
-            : MediaIcon.fromItem(widget.item, size: 32),
+              ? SvgPicture.asset(
+                  'assets/svgs/folder-black.svg',
+                  height: 20,
+                  width: 20,
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(context).colorScheme.onSurface,
+                    BlendMode.srcIn,
+                  ),
+                )
+              : MediaIcon.fromItem(widget.item, size: 32),
         ),
         title: Text(
           widget.item.name,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 16),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
         ),
-        // subtitle: Text(
-        //   '${item.subFolders ?? 0} Folder | ${item.itemsCount ?? 0} Items',
-        //   style: TextStyle(color: Colors.grey[600], fontSize: 13),
-        // ),
         subtitle: Text(
-            '${formatBytes(widget.item.size)} • ${formatDate(widget.item.lastModified)}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)
-          ),
+          '${formatBytes(widget.item.size)} • ${formatDate(widget.item.lastModified)}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+        ),
         trailing: PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            if (value == 'delete') {
-              showDeleteDialog(context, widget.item, notifier);
-            } else if (value == 'rename') {
-              showRenameDialog(context, widget.item, notifier);
-            } else if (value == 'copy') {
-              notifier.copyItem(widget.item);
-            } else if (value == 'move') {
-              notifier.moveItem(widget.item);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 'copy', child: Text('Copy')),
-            const PopupMenuItem(value: 'move', child: Text('Move')),
-            const PopupMenuItem(value: 'rename', child: Text('Rename')),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
+          onSelected: (value) => _onMenuSelected(value, notifier),
+          itemBuilder: (context) => _buildMenuItems(),
         ),
-        onTap: () {
-          if (widget.item.isDirectory) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FolderPage(path: widget.item.path),
-                settings: RouteSettings(name: widget.item.path),
-              ),
-            );
-          } else {
-            // Open/preview non-directory file
-          }
-        },
+        onTap: _onTap,
       ),
     );
   }

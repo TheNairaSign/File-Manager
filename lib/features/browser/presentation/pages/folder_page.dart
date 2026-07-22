@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:file_manager/features/browser/dialogs/create_folder_dialog.dart';
 import 'package:file_manager/features/browser/presentation/providers/browser_provider.dart';
 import 'package:file_manager/features/browser/presentation/widgets/breadcrumbs_bar.dart';
@@ -56,6 +57,24 @@ class _FolderPageState extends ConsumerState<FolderPage> {
         ),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: Icon(
+              EvaIcons.grid,
+              color: state.isGridView
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey,
+            ),
+            onPressed: () => notifier.setGridView(true),
+          ),
+          IconButton(
+            icon: Icon(
+              EvaIcons.list,
+              color: !state.isGridView
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey,
+            ),
+            onPressed: () => notifier.setGridView(false),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => notifier.refresh(),
@@ -133,6 +152,30 @@ class _FolderPageState extends ConsumerState<FolderPage> {
       );
     }
 
+    if (state.isGridView) {
+      return RefreshIndicator(
+        onRefresh: () => notifier.refresh(),
+        child: GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.3,
+          ),
+          itemCount: state.items.length,
+          itemBuilder: (context, index) {
+            final item = state.items[index];
+            return FileItemContainer(
+              item: item,
+              currentPath: state.currentPath,
+              isGrid: true,
+            );
+          },
+        ),
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: () => notifier.refresh(),
       child: ListView.builder(
@@ -143,6 +186,7 @@ class _FolderPageState extends ConsumerState<FolderPage> {
           return FileItemContainer(
             item: item,
             currentPath: state.currentPath,
+            isGrid: false,
           );
         },
       ),

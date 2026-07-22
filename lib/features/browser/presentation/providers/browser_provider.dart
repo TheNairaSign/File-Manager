@@ -11,6 +11,7 @@ class BrowserState {
   final String? error;
   final FileItem? clipboardItem;
   final bool isCopying;
+  final bool isGridView;
 
   BrowserState({
     required this.currentPath,
@@ -19,6 +20,7 @@ class BrowserState {
     this.error,
     this.clipboardItem,
     this.isCopying = true,
+    this.isGridView = false,
   });
 
   BrowserState copyWith({
@@ -29,6 +31,7 @@ class BrowserState {
     FileItem? clipboardItem,
     bool? isCopying,
     bool clearClipboard = false,
+    bool? isGridView,
   }) {
     return BrowserState(
       currentPath: currentPath ?? this.currentPath,
@@ -37,6 +40,7 @@ class BrowserState {
       error: error,
       clipboardItem: clearClipboard ? null : (clipboardItem ?? this.clipboardItem),
       isCopying: isCopying ?? this.isCopying,
+      isGridView: isGridView ?? this.isGridView,
     );
   }
 }
@@ -193,6 +197,14 @@ class BrowserNotifier extends StateNotifier<BrowserState> {
 
   void cancelPaste() {
     state = state.copyWith(clearClipboard: true);
+  }
+
+  void setGridView(bool isGrid) {
+    state = state.copyWith(isGridView: isGrid);
+  }
+
+  void toggleViewMode() {
+    state = state.copyWith(isGridView: !state.isGridView);
   }
 
   void navigateInto(FileItem item) {

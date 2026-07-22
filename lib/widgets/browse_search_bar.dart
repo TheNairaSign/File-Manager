@@ -20,16 +20,18 @@ class BrowseSearchBar extends ConsumerWidget {
     final notifier = ref.read(browserProviderFor(path).notifier);
     return  Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(30),
       ),
       child: TextField(
+        style: Theme.of(context).textTheme.bodyMedium,
         controller: controller,
         onSubmitted: (query) {
           notifier.search(query);
         },
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: 'Search',
+          hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
           prefixIcon: Icon(Icons.search, color: Colors.grey),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 14),

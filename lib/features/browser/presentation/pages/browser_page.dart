@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:file_manager/features/browser/dialogs/create_folder_dialog.dart';
 import 'package:file_manager/features/browser/presentation/widgets/file_item_container.dart';
 import 'package:file_manager/features/browser/media_category.dart';
@@ -212,12 +213,22 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.grid_view,),
-                          onPressed: () {},
+                          icon: Icon(
+                            EvaIcons.grid,
+                            color: state.isGridView
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey,
+                          ),
+                          onPressed: () => notifier.setGridView(true),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.view_list,),
-                          onPressed: () {},
+                          icon: Icon(
+                            EvaIcons.list,
+                            color: !state.isGridView
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey,
+                          ),
+                          onPressed: () => notifier.setGridView(false),
                         ),
                       ],
                     ),
@@ -254,7 +265,7 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                   'Media Categories',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -271,12 +282,10 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                     );
                   }).toList(),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 15),
                 Text(
                   'Files & Folders',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
@@ -321,6 +330,29 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
           const SliverFillRemaining(
             child: Center(child: Text('Directory is empty')),
           )
+        else if (state.isGridView)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.3,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final item = state.items[index];
+                  return FileItemContainer(
+                    item: item,
+                    currentPath: state.currentPath,
+                    isGrid: true,
+                  );
+                },
+                childCount: state.items.length,
+              ),
+            ),
+          )
         else
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -331,6 +363,7 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                   return FileItemContainer(
                     item: item,
                     currentPath: state.currentPath,
+                    isGrid: false,
                   );
                 },
                 childCount: state.items.length,
