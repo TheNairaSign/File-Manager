@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:file_manager/core/platform/file_channel_error.dart';
 import 'package:file_manager/models/file_item.dart';
 import 'package:file_manager/models/storage_info.dart';
+import 'package:file_manager/models/storage_volume.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,16 +30,6 @@ class FileChannel {
       used: storage['used']
     );
   }
-
-  // Future<Either<FileChannelError, PermissionState>> checkPermissionStatus() async {
-  //   final result = await _invoke<Map<Object?, Object?>>('checkPermissionStatus');
-  //   return result.map(PermissionState.fromMap);
-  // }
-
-  // Future<Either<FileChannelError, PermissionRequestResult>> requestPermission() async {
-  //   final result = await _invoke<Map<Object?, Object?>>('requestPermission');
-  //   return result.map(PermissionRequestResult.fromMap);
-  // }
 
   Future<Either<FileChannelError, void>> openAppSettings() async {
     return _invoke<void>('openAppSettings');
@@ -125,7 +116,20 @@ class FileChannel {
         .toList());
   }
 
-  // ── Private helper ─────────────────────────────────────────────────────────
+  Future<List<StorageVolume>> getStorageVolumes() async {
+    try {
+      final List<dynamic>? result = await _channel.invokeMethod('getStorageVolumes');
+      if (result == null) return [];
+
+      return result.map((item) {
+        final map = Map<String, dynamic>.from(item as Map);
+        return StorageVolume.fromMap(map);
+      }).toList();
+    } catch (e) {
+      debugPrint('[FileChannel] getStorageVolumes failed: $e');
+      return [];
+    }
+  }
 
   /// Invokes [method] on the channel and wraps the result in Either.
   /// All public methods funnel through here so error handling is consistent.

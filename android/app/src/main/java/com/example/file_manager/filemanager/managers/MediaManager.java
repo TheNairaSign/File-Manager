@@ -1,4 +1,4 @@
-package com.example.file_manager.filemanager;
+package com.example.file_manager.filemanager.managers;
 
 import android.content.Context;
 import android.database.Cursor;

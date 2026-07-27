@@ -85,22 +85,32 @@ class _FolderPageState extends ConsumerState<FolderPage> {
           ),
         ],
       ),
-      body: _buildBody(context, state, notifier),
-      bottomNavigationBar: Container(
-        height: 50,
-        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.0),
-          color: Theme.of(context).colorScheme.surface,
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
-            width: 1,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          BreadcrumbsBar(
+            currentPath: state.currentPath.isEmpty ? widget.path : state.currentPath,
           ),
-        ),
-        child: BreadcrumbsBar(
-          currentPath: state.currentPath.isEmpty ? widget.path : state.currentPath,
-        ),
+          Expanded(
+            child: _buildBody(context, state, notifier),
+          ),
+        ],
       ),
+      // bottomNavigationBar: Container(
+      //   height: 50,
+      //   margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      //   decoration: BoxDecoration(
+      //     borderRadius: BorderRadius.circular(16.0),
+      //     color: Theme.of(context).colorScheme.surface,
+      //     border: Border.all(
+      //       color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
+      //       width: 1,
+      //     ),
+      //   ),
+      //   child: BreadcrumbsBar(
+      //     currentPath: state.currentPath.isEmpty ? widget.path : state.currentPath,
+      //   ),
+      // ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showCreateFolderDialog(context, notifier),
         backgroundColor: const Color(0xFF5C6BC0),

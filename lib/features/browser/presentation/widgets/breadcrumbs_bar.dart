@@ -150,36 +150,16 @@ class _BreadcrumbsBarState extends State<BreadcrumbsBar> {
   @override
   Widget build(BuildContext context) {
     final segments = _parseSegments(widget.currentPath);
-    final theme = Theme.of(context);
 
-    return Container(
-      height: 52,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, -2),
-          ),
-        ],
-        border: Border(
-          top: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.12),
-            width: 1,
-          ),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: _buildBreadcrumbList(context, segments),
-          ),
+    return SizedBox(
+      height: 44,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: _buildBreadcrumbList(context, segments),
         ),
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:file_manager/core/platform/permission/permission_service.dart';
 import 'package:file_manager/core/platform/permission/permission_state.dart';
 import 'package:file_manager/models/file_item.dart';
+import 'package:file_manager/models/storage_volume.dart';
 import 'package:file_manager/core/platform/file_channel.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 class BrowserState {
@@ -229,4 +231,44 @@ class BrowserNotifier extends StateNotifier<BrowserState> {
 final browserProviderFor = StateNotifierProvider.family<BrowserNotifier, BrowserState, String>((ref, path) {
   final fileChannel = ref.watch(fileChannelProvider);
   return BrowserNotifier(fileChannel, path);
+});
+
+final storageVolumesProvider = FutureProvider<List<StorageVolume>>((ref) async {
+  final fileChannel = ref.watch(fileChannelProvider);
+  final volumes = await fileChannel.getStorageVolumes();
+  if (volumes.isEmpty) {
+    final pathResult = await fileChannel.getStoragePath();
+    final primaryPath = pathResult.fold((_) => '/storage/emulated/0', (p) => p);
+    try {
+      final storageInfo = await fileChannel.getStorageInfo();
+      return [
+        StorageVolume(
+          uuid: 'primary',
+          description: 'Internal Storage',
+          path: primaryPath,
+          isPrimary: true,
+          isRemovable: false,
+          state: 'mounted',
+          totalBytes: storageInfo.total,
+          availableBytes: storageInfo.free,
+          usedBytes: storageInfo.used,
+        ),
+      ];
+    } catch (_) {
+      return [
+        StorageVolume(
+          uuid: 'primary',
+          description: 'Internal Storage',
+          path: primaryPath,
+          isPrimary: true,
+          isRemovable: false,
+          state: 'mounted',
+          totalBytes: 0,
+          availableBytes: 0,
+          usedBytes: 0,
+        ),
+      ];
+    }
+  }
+  return volumes;
 });

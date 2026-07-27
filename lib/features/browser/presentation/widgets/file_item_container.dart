@@ -101,7 +101,8 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
                               height: 28,
                               width: 28,
                               colorFilter: ColorFilter.mode(
-                                Theme.of(context).colorScheme.onSurface,
+                                // _folderColor(widget.item),
+                                Theme.of(context).colorScheme.onSurface,  
                                 BlendMode.srcIn,
                               ),
                             )

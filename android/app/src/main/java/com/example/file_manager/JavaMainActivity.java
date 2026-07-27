@@ -9,8 +9,12 @@ import android.os.Looper;
 
 import android.content.Intent;
 
+import android.os.storage.StorageManager;
 import com.example.file_manager.filemanager.*;
 
+import com.example.file_manager.filemanager.managers.MediaManager;
+import com.example.file_manager.filemanager.managers.PermissionManager;
+import com.example.file_manager.filemanager.managers.DeviceStorageManager;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.BinaryMessenger;
@@ -81,9 +85,9 @@ public class JavaMainActivity extends FlutterActivity {
                     case "renameEntry" -> handleRenameEntry(call, result);
                     case "listDirectory" -> handleListDirectory(call, result);
                     case "searchFiles" -> handleSearchFiles(call, result);
-                    case "getStorageVolumes" -> handleGetStorageVolumes(result);
                     case "getStorageInfo" -> handleStorageInfo(result);
                     case "getMedia" -> handleGetMedia(call, result, context);
+                    case "getStorageVolumes" -> handleStorageVolumes(context, result);
                     default -> mainHandler.post(result::notImplemented);
                 }
             } catch (Exception e) {
@@ -95,6 +99,11 @@ public class JavaMainActivity extends FlutterActivity {
     }
 
     // ─── Handlers ────────────────────────────────────────────────────────────
+
+    private void handleStorageVolumes(Context context, MethodChannel.Result result) {
+        final List<Map<String, Object>> deviceStorageManager = DeviceStorageManager.getStorageVolumes(context);
+        mainHandler.post(() -> result.success(deviceStorageManager));
+    }
 
     private void handleGetMedia(
             MethodCall call,
@@ -132,7 +141,7 @@ public class JavaMainActivity extends FlutterActivity {
     }
 
     private void handleStorageInfo(MethodChannel.Result result) {
-        final Map<String, Long> storageInfo = StorageManager.getStorageInfo();
+        final Map<String, Long> storageInfo = DeviceStorageManager.getStorageInfo();
         mainHandler.post(() -> result.success(storageInfo));
     }
 

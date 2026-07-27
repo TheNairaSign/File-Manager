@@ -1,4 +1,4 @@
-package com.example.file_manager.filemanager;
+package com.example.file_manager.filemanager.managers;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -282,5 +282,8 @@ public class PermissionManager {
 
     private boolean shouldShowRationale(String permission) {
         return ActivityCompat.shouldShowRequestPermissionRationale(activity, permission);
+    }
+
+    public static class MediaStoreService {
     }
 }
