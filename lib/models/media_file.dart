@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class MediaFile {
   final int id;
   final String name;
@@ -59,5 +61,21 @@ class MediaFile {
       'artist': artist,
       'album': album,
     };
+  }
+
+  /// Converts this [MediaFile] into a [File] pointing at [path].
+  ///
+  /// Note: this doesn't verify the file still exists on disk — a media
+  /// item can be stale (deleted/moved since the DB/platform channel query
+  /// ran). Use [toExistingFile] if you need that guarantee.
+  File toFile() => File(path);
+
+  /// Same as [toFile], but returns `null` if the file no longer exists at
+  /// [path]. Useful right before attempting to open/preview it, since a
+  /// stale MediaFile (e.g. from a cached media store query) can point at
+  /// something that was since deleted.
+  Future<File?> toExistingFile() async {
+    final file = File(path);
+    return await file.exists() ? file : null;
   }
 }

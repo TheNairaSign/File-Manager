@@ -2,6 +2,7 @@ import 'package:file_manager/core/helpers/byte_converter.dart';
 import 'package:file_manager/core/helpers/format_date.dart';
 import 'package:file_manager/features/browser/media_category.dart';
 import 'package:file_manager/features/browser/presentation/providers/media_provider.dart';
+import 'package:file_manager/features/browser/presentation/widgets/preview/file_preview_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -109,32 +110,47 @@ class MediaCategoryPage extends ConsumerWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              // leading: Container(
+              //   width: 48,
+              //   height: 48,
+              //   decoration: BoxDecoration(
+              //     color: iconColor.withValues(alpha: 0.1),
+              //     borderRadius: BorderRadius.circular(8),
+              //   ),
+              //   child: Icon(
+              //     iconData,
+              //     color: iconColor,
+              //     size: 28,
+              //   ),
+              // ),
               leading: Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16)
                 ),
-                child: Icon(
-                  iconData,
-                  color: iconColor,
-                  size: 28,
-                ),
+                child: FilePreviewWidget(file: file.toFile()),
               ),
               title: Text(
                 file.name,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  // fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
                 '${formatBytes(file.size)} • ${formatDate(file.dateModified * 1000)}',
-                style: const TextStyle(fontSize: 12),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey,
+                  fontSize: 11,
+                ),
               ),
               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
                 // Future extension: open preview
+                
               },
             ),
           );

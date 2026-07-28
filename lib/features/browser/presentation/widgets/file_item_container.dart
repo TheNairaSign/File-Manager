@@ -125,9 +125,9 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -135,9 +135,9 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
                           ? 'Folder'
                           : formatBytes(widget.item.size),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
-                            fontSize: 11,
-                          ),
+                        color: Colors.grey,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -156,8 +156,8 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
-          width: 35,
-          height: 35,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
@@ -177,13 +177,13 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
         title: Text(
           widget.item.name,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
         ),
         subtitle: Text(
           '${formatBytes(widget.item.size)} • ${formatDate(widget.item.lastModified)}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 11),
         ),
         trailing: PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),

@@ -19,7 +19,8 @@ final ThemeData lightThemeData = ThemeData(
     onTertiary: Colors.white,
 
     // Main surfaces
-    surface: Color(0xFFF8F8F8),
+    // surface: Color(0xFFF8F8F8),
+    surface: Colors.white,
     onSurface: Color(0xFF181818),
 
     surfaceContainerLowest: Colors.white,

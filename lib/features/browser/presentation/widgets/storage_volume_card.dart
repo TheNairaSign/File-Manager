@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:file_manager/core/helpers/byte_converter.dart';
+import 'package:file_manager/features/browser/presentation/pages/folder_page.dart';
 import 'package:file_manager/models/storage_volume.dart';
 import 'package:flutter/material.dart';
 
@@ -37,14 +38,14 @@ class StorageVolumeCard extends StatefulWidget {
     this.progress = 0.0,
     this.isSelected = false,
     this.onTap,
-    this.width = 200,
+    this.width = 180,
     this.height = 80,
     this.animationDuration = const Duration(milliseconds: 700),
     this.waveDuration = const Duration(seconds: 3),
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
     this.label,
     this.labelStyle,
-    this.backgroundColor = const Color(0xFF1E1E1E),
+    this.backgroundColor = Colors.transparent,
     this.showBorder = false,
   });
 
@@ -123,8 +124,8 @@ class _StorageVolumeCardState extends State<StorageVolumeCard> with TickerProvid
   }
 
   /// Maps a progress value to a color.
-  static Color colorForProgress(double p) {
-    const grey = Color(0xFF9E9E9E);
+  static Color colorForProgress(BuildContext context, double p) {
+    final grey = Theme.of(context).colorScheme.surface;
     const yellow = Color(0xFFFFC107);
     const orange = Color(0xFFFF9800);
     const red = Color(0xFFE53935);
@@ -158,7 +159,15 @@ class _StorageVolumeCardState extends State<StorageVolumeCard> with TickerProvid
       color: Colors.transparent,
       borderRadius: widget.borderRadius,
       child: InkWell(
-        onTap: widget.onTap,
+        // onTap: widget.onTap,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FolderPage(path: widget.volume!.path),
+            ),
+          );
+        },
         borderRadius: widget.borderRadius,
         child: Container(
           width: widget.width,
@@ -191,7 +200,7 @@ class _StorageVolumeCardState extends State<StorageVolumeCard> with TickerProvid
                       animation: Listenable.merge([_waveController, _progressController]),
                       builder: (context, _) {
                         final p = _progressAnimation.value;
-                        final color = colorForProgress(p);
+                        final color = colorForProgress(context, p);
                         return CustomPaint(
                           size: Size(widget.width, widget.height),
                           painter: _WavePainter(
@@ -209,24 +218,24 @@ class _StorageVolumeCardState extends State<StorageVolumeCard> with TickerProvid
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          // color: isSelected
-                          //     ? theme.colorScheme.primary
-                          //     : theme.colorScheme.primary.withValues(alpha: 0.15),
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          _getVolumeIcon(),
-                          size: 20,
-                          // color: isSelected
-                          //     ? theme.colorScheme.onPrimary
-                          //     : theme.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                      // Container(
+                      //   padding: const EdgeInsets.all(8),
+                      //   decoration: BoxDecoration(
+                      //     // color: isSelected
+                      //     //     ? theme.colorScheme.primary
+                      //     //     : theme.colorScheme.primary.withValues(alpha: 0.15),
+                      //     color: Colors.transparent,
+                      //     borderRadius: BorderRadius.circular(10),
+                      //   ),
+                      //   child: Icon(
+                      //     _getVolumeIcon(),
+                      //     size: 20,
+                      //     // color: isSelected
+                      //     //     ? theme.colorScheme.onPrimary
+                      //     //     : theme.colorScheme.primary,
+                      //   ),
+                      // ),
+                      // const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +273,8 @@ class _StorageVolumeCardState extends State<StorageVolumeCard> with TickerProvid
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+                                    // color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+                                    color: Colors.grey
                                   ),
                                 ),
                                 Text(
@@ -272,7 +282,7 @@ class _StorageVolumeCardState extends State<StorageVolumeCard> with TickerProvid
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: colorForProgress(ratio),
+                                    color: colorForProgress(context, ratio),
                                   ),
                                 ),
                               ],

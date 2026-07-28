@@ -79,10 +79,10 @@ class _FolderPageState extends ConsumerState<FolderPage> {
             icon: const Icon(Icons.refresh),
             onPressed: () => notifier.refresh(),
           ),
-          IconButton(
-            icon: const Icon(Icons.create_new_folder),
-            onPressed: () => showCreateFolderDialog(context, notifier),
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.create_new_folder),
+          //   onPressed: () => showCreateFolderDialog(context, notifier),
+          // ),
         ],
       ),
       body: Column(
@@ -113,7 +113,6 @@ class _FolderPageState extends ConsumerState<FolderPage> {
       // ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showCreateFolderDialog(context, notifier),
-        backgroundColor: const Color(0xFF5C6BC0),
         child: const Icon(Icons.create_new_folder),
       ),
     );

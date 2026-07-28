@@ -179,9 +179,7 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                       children: [
                         Text(
                           'Storage Locations',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
                         volumesAsync.when(
@@ -189,31 +187,33 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                             if (vList.isEmpty) {
                               return const SizedBox.shrink();
                             }
-                            return SizedBox(
+                             return SizedBox(
                               height: 80,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: vList.length,
-                                separatorBuilder: (context, index) => const SizedBox(width: 10),
-                                itemBuilder: (context, index) {
+                              child: Row(
+                                mainAxisAlignment: .spaceBetween,
+                                children: List.generate(vList.length, (index) {
                                   final vol = vList[index];
-                                  final isSel = vol.path == activePath ||
-                                      (_selectedVolumePath == null && index == 0);
-                                  return StorageVolumeCard(
-                                    volume: vol,
-                                    isSelected: isSel,
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedVolumePath = vol.path;
-                                      });
-                                      ref
-                                          .read(browserProviderFor(vol.path).notifier)
-                                          .loadStorageAndDirectory();
-                                    },
+                                  final isSel = vol.path == activePath || (_selectedVolumePath == null && index == 0);
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                    child: StorageVolumeCard(
+                                      backgroundColor: Theme.of(context).colorScheme.surface,
+                                      volume: vol,
+                                      isSelected: isSel,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedVolumePath = vol.path;
+                                        });
+                                        ref
+                                            .read(browserProviderFor(vol.path).notifier)
+                                            .loadStorageAndDirectory();
+                                      },
+                                    ),
                                   );
                                 },
                               ),
-                            );
+                            )
+                             );
                           },
                           loading: () => const SizedBox(
                             height: 80,
@@ -235,12 +235,11 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                       children: [
                         Text(
                           'Media Categories',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
                         GridView.count(
+                          padding: EdgeInsets.zero,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: 2,
@@ -256,43 +255,9 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Files & Folders',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    EvaIcons.grid,
-                                    color: state.isGridView
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey,
-                                  ),
-                                  onPressed: () => notifier.setGridView(true),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    EvaIcons.list,
-                                    color: !state.isGridView
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey,
-                                  ),
-                                  onPressed: () => notifier.setGridView(false),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
                       ],
                     ),
-                  ),
+                  )
                 ),
 
                 // Files & Folders Directory Content
@@ -304,7 +269,6 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showCreateFolderDialog(context, notifier),
-        backgroundColor: const Color(0xFF5C6BC0),
         child: const Icon(Icons.create_new_folder),
       ),
     );

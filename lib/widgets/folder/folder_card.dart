@@ -9,10 +9,6 @@ enum FolderCardState {
   empty,
 }
 
-/// A folder/collection card matching the "Work files" design:
-/// a rounded card with a gradient header (optionally showing stacked
-/// paper sheets) and a dark bottom panel with title, subtitle,
-/// an overflow menu, and a file count.
 class FolderCard extends StatelessWidget {
   const FolderCard({
     super.key,
@@ -64,13 +60,13 @@ class FolderCard extends StatelessWidget {
         height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(cardRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
-            ),
-          ],
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.black.withValues(alpha: 0.25),
+          //     blurRadius: 24,
+          //     offset: const Offset(0, 12),
+          //   ),
+          // ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(

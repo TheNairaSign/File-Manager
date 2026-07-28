@@ -31,7 +31,8 @@ class MediaCard extends ConsumerWidget {
 
     return Card(
       elevation: 0,
-      color: color.withValues(alpha: 0.1),
+      // color: color.withValues(alpha: 0.1),
+      color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
@@ -64,7 +65,8 @@ class MediaCard extends ConsumerWidget {
                       asset, 
                       width: 15, 
                       height: 15, 
-                      colorFilter: .mode(color, .srcIn),
+                      // colorFilter: .mode(color, .srcIn),
+                      colorFilter: .mode(Theme.of(context).colorScheme.onSurface, .srcIn),
                     ),
                   ),
                   const SizedBox(width: 10),
