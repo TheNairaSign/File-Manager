@@ -1,5 +1,6 @@
 import 'package:file_manager/core/helpers/byte_converter.dart';
 import 'package:file_manager/core/helpers/format_date.dart';
+import 'package:file_manager/core/services/file_open_service.dart';
 import 'package:file_manager/features/browser/media_category.dart';
 import 'package:file_manager/features/browser/presentation/providers/media_provider.dart';
 import 'package:file_manager/features/browser/presentation/widgets/preview/file_preview_widget.dart';
@@ -150,7 +151,7 @@ class MediaCategoryPage extends ConsumerWidget {
               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
                 // Future extension: open preview
-                
+                FileOpenService.open(context, file.toFile());
               },
             ),
           );
