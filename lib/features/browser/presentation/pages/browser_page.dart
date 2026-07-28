@@ -1,6 +1,5 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:file_manager/features/browser/dialogs/create_folder_dialog.dart';
-import 'package:file_manager/features/browser/presentation/pages/folders_page.dart';
 import 'package:file_manager/features/browser/media_category.dart';
 import 'package:file_manager/features/browser/presentation/widgets/media_card.dart';
 import 'package:file_manager/features/browser/presentation/widgets/storage_volume_card.dart';
@@ -191,10 +190,11 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                               return const SizedBox.shrink();
                             }
                             return SizedBox(
-                              height: 110,
-                              child: ListView.builder(
+                              height: 80,
+                              child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: vList.length,
+                                separatorBuilder: (context, index) => const SizedBox(width: 10),
                                 itemBuilder: (context, index) {
                                   final vol = vList[index];
                                   final isSel = vol.path == activePath ||
@@ -216,7 +216,7 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                             );
                           },
                           loading: () => const SizedBox(
-                            height: 110,
+                            height: 80,
                             child: Center(child: CircularProgressIndicator()),
                           ),
                           error: (err, stack) => const SizedBox.shrink(),
@@ -296,7 +296,7 @@ class _BrowserPageState extends ConsumerState<BrowserPage> {
                 ),
 
                 // Files & Folders Directory Content
-                FoldersPage(path: activePath),
+                // FoldersPage(path: activePath),
               ],
             ),
           ),
