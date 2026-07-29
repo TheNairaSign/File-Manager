@@ -22,13 +22,13 @@ class FileViewerPage extends StatelessWidget {
     final type = FilePreviewService.typeOf(file);
     final name = file.path.split('/').last;
     final isVisualMedia =
-        type == PreviewFileType.image || type == PreviewFileType.pdf;
+        type == PreviewFileType.image || type == PreviewFileType.pdf || type == PreviewFileType.video;
 
     return Scaffold(
-      // backgroundColor: isVisualMedia ? Colors.black : null,
+      backgroundColor: isVisualMedia ? Colors.black : null,
       appBar: AppBar(
-        // backgroundColor: isVisualMedia ? Colors.black : null,
-        // foregroundColor: isVisualMedia ? Colors.white : null,
+        backgroundColor: isVisualMedia ? Colors.black : null,
+        foregroundColor: isVisualMedia ? Colors.white : null,
         title: Text(name, overflow: TextOverflow.ellipsis),
         actions: [
           IconButton(

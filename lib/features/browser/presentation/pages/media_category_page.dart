@@ -130,7 +130,7 @@ class MediaCategoryPage extends ConsumerWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16)
                 ),
-                child: FilePreviewWidget(file: file.toFile()),
+                child: FilePreviewWidget(file: file.toFile(), radius: 10,),
               ),
               title: Text(
                 file.name,

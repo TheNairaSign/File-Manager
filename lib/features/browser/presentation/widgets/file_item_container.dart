@@ -1,10 +1,13 @@
+import 'dart:io';
+
 import 'package:file_manager/core/helpers/byte_converter.dart';
 import 'package:file_manager/core/helpers/format_date.dart';
+import 'package:file_manager/core/services/file_open_service.dart';
 import 'package:file_manager/features/browser/dialogs/delete_dialog.dart';
 import 'package:file_manager/features/browser/dialogs/rename_dialog.dart';
 import 'package:file_manager/features/browser/presentation/providers/browser_provider.dart';
+import 'package:file_manager/features/browser/presentation/widgets/preview/file_preview_widget.dart';
 import 'package:file_manager/models/file_item.dart';
-import 'package:file_manager/widgets/media_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,6 +44,7 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
       );
     } else {
       // Open/preview non-directory file
+      FileOpenService.open(context, File(widget.item.path));
     }
   }
 
@@ -73,7 +77,7 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
     final notifier = ref.read(browserProviderFor(widget.currentPath).notifier);
 
     if (widget.isGrid) {
-      return Card(
+      return widget.item.isDirectory ? Card(
         elevation: 0,
         margin: EdgeInsets.zero,
         color: Theme.of(context).colorScheme.surface,
@@ -92,29 +96,27 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 35,
-                      height: 35,
+                      width: 30,
+                      height: 30,
                       alignment: Alignment.center,
-                      child: widget.item.isDirectory
-                          ? SvgPicture.asset(
-                              'assets/svgs/folder-black.svg',
-                              height: 28,
-                              width: 28,
-                              colorFilter: ColorFilter.mode(
-                                // _folderColor(widget.item),
-                                Theme.of(context).colorScheme.onSurface,  
-                                BlendMode.srcIn,
-                              ),
-                            )
-                          : MediaIcon.fromItem(widget.item, size: 28),
+                      child: SvgPicture.asset(
+                        'assets/svgs/folder-black.svg',
+                        height: 24,
+                        width: 24,
+                        colorFilter: ColorFilter.mode(
+                          // _folderColor(widget.item),
+                          Theme.of(context).colorScheme.onSurface,  
+                          BlendMode.srcIn,
+                        ),
+                      )
                     ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 18),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onSelected: (val) => _onMenuSelected(val, notifier),
-                      itemBuilder: (context) => _buildMenuItems(),
-                    ),
+                    // PopupMenuButton<String>(
+                    //   icon: const Icon(Icons.more_vert, size: 18),
+                    //   padding: EdgeInsets.zero,
+                    //   constraints: const BoxConstraints(),
+                    //   onSelected: (val) => _onMenuSelected(val, notifier),
+                    //   itemBuilder: (context) => _buildMenuItems(),
+                    // ),
                   ],
                 ),
                 Column(
@@ -145,7 +147,9 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
             ),
           ),
         ),
-      );
+      ) : GestureDetector(
+        onTap: () => FileOpenService.open(context, File(widget.item.path)),
+        child: FilePreviewWidget(file: File(widget.item.path)));
     }
 
     return Card(
@@ -154,32 +158,32 @@ class _FileItemContainerState extends ConsumerState<FileItemContainer> {
       color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        leading: widget.item.isDirectory ? Container(
           width: 30,
           height: 30,
           decoration: BoxDecoration(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: widget.item.isDirectory
-              ? SvgPicture.asset(
-                  'assets/svgs/folder-black.svg',
-                  height: 20,
-                  width: 20,
-                  colorFilter: ColorFilter.mode(
-                    Theme.of(context).colorScheme.onSurface,
-                    BlendMode.srcIn,
-                  ),
-                )
-              : MediaIcon.fromItem(widget.item, size: 32),
-        ),
+          child: SvgPicture.asset(
+            'assets/svgs/folder-black.svg',
+            height: 20,
+            width: 20,
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).colorScheme.onSurface,
+              BlendMode.srcIn,
+            ),
+          )
+        ) : SizedBox(width: 60, height: double.infinity, child: FilePreviewWidget(file: File(widget.item.path), radius: 10,)),
         title: Text(
           widget.item.name,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 13,
           ),
+          maxLines: 2,
+          overflow: .ellipsis,
         ),
         subtitle: Text(
           '${formatBytes(widget.item.size)} • ${formatDate(widget.item.lastModified)}',

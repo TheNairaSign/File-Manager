@@ -1,13 +1,14 @@
 import 'dart:io';
 
+import 'package:chewie/chewie.dart';
+import 'package:file_manager/features/browser/presentation/providers/video_thumbnail_provider.dart';
+import 'package:file_manager/models/video_thumbnail.dart';
 import 'package:flutter/material.dart';
-// Requires: video_player: ^2.9.0 (add to pubspec.yaml)
+import 'package:signals_flutter/signals_flutter.dart';
 import 'package:video_player/video_player.dart';
 
-/// Thumbnail mode: shows the first frame (paused) with a play-button
-/// overlay — cheap and avoids initializing playback for every grid tile.
-/// Full-screen mode: initializes a real `VideoPlayerController` with
-/// play/pause/seek controls.
+/// Thumbnail mode: uses Signals to fetch the video thumbnail asynchronously.
+/// Full-screen mode: initializes a real `VideoPlayerController` for playback.
 class VideoFilePreview extends StatefulWidget {
   const VideoFilePreview({
     super.key,
@@ -23,13 +24,35 @@ class VideoFilePreview extends StatefulWidget {
 }
 
 class _VideoFilePreviewState extends State<VideoFilePreview> {
+  // Instance of our Signals controller for tile thumbnails
+  late final VideoThumbnailProvider _thumbnailProvider;
+
   VideoPlayerController? _controller;
+  ChewieController? _chewieController;
   bool _initFailed = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.fullScreen) _initController();
+
+    if (widget.fullScreen) {
+      _initController();
+    } else {
+      _thumbnailProvider = VideoThumbnailProvider();
+      _fetchThumbnail();
+    }
+  }
+
+  /// Triggers native thumbnail extraction via signals
+  void _fetchThumbnail() {
+    final config = VideoThumbnailConfig(
+      video: widget.file.path,
+      maxHeight: 300, // Reduced resolution for efficient grid previews
+      quality: 75,
+      imageFormat: ImageFormat.JPEG,
+    );
+
+    _thumbnailProvider.generateData(config);
   }
 
   Future<void> _initController() async {
@@ -45,28 +68,82 @@ class _VideoFilePreviewState extends State<VideoFilePreview> {
 
   @override
   void dispose() {
+    if (!widget.fullScreen) {
+      _thumbnailProvider.clear();
+    }
     _controller?.dispose();
+    _chewieController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // ── 1. TILE MODE (Signal Thumbnail) ───────────────────────────────────
     if (!widget.fullScreen) {
-      // Lightweight tile: icon-over-placeholder. Wire up a real thumbnail
-      // extractor (e.g. `video_thumbnail` package) if you want actual
-      // frame previews in the grid.
-      return Container(
-        color: Colors.black87,
-        alignment: Alignment.center,
-        child: const Icon(Icons.play_circle_outline,
-            color: Colors.white, size: 36),
-      );
+      return Watch((context) {
+        final isLoading = _thumbnailProvider.isLoading.watch(context);
+        final bytes = _thumbnailProvider.thumbnailBytes.watch(context);
+        final hasError = _thumbnailProvider.hasError.watch(context);
+
+        return Container(
+          color: Colors.black87,
+          alignment: Alignment.center,
+          child: Stack(
+            alignment: Alignment.center,
+            fit: StackFit.expand,
+            children: [
+              // Display extracted thumbnail image bytes
+              if (bytes != null)
+                Image.memory(
+                  bytes,
+                  fit: BoxFit.cover,
+                ),
+
+              // Play icon overlay
+              if (!isLoading)
+                const Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white,
+                    size: 36,
+                  ),
+                ),
+
+              // Loading spinner
+              if (isLoading)
+                const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+
+              // Fallback error indicator
+              if (hasError && bytes == null)
+                const Center(
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.white54,
+                    size: 28,
+                  ),
+                ),
+            ],
+          ),
+        );
+      });
     }
 
+    // ── 2. FULLSCREEN MODE (VideoPlayer) ──────────────────────────────────
     if (_initFailed) {
-      return const Center(
-        child: Text('Unable to play this video',
-            style: TextStyle(color: Colors.white70)),
+      return Center(
+        child: Text(
+          'Unable to play this video',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
       );
     }
 
@@ -77,6 +154,20 @@ class _VideoFilePreviewState extends State<VideoFilePreview> {
       );
     }
 
+    
+    final chewieController = _chewieController?? ChewieController(
+      videoPlayerController: controller,
+      autoPlay: true,
+      looping: false,
+      showControls: true,
+    );
+
+    final playerWidget = Chewie(
+      controller: chewieController,
+    );
+    return playerWidget;
+    
+/*
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -106,5 +197,6 @@ class _VideoFilePreviewState extends State<VideoFilePreview> {
         ),
       ],
     );
+    */
   }
 }

@@ -25,10 +25,12 @@ class FilePreviewWidget extends StatefulWidget {
     super.key,
     required this.file,
     this.mode = PreviewMode.thumbnail,
+    this.radius = 20,
   });
 
   final File file;
   final PreviewMode mode;
+  final double radius;
 
   @override
   State<FilePreviewWidget> createState() => _FilePreviewWidgetState();
@@ -75,7 +77,10 @@ class _FilePreviewWidgetState extends State<FilePreviewWidget> {
           );
         }
 
-        return _buildRichPreview(_type);
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(widget.radius),
+          child: _buildRichPreview(_type),
+        );
       },
     );
   }

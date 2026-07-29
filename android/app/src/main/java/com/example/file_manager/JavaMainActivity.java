@@ -10,13 +10,16 @@ import android.os.Looper;
 import android.content.Intent;
 
 import android.os.storage.StorageManager;
+import androidx.annotation.NonNull;
 import com.example.file_manager.filemanager.*;
 
 import com.example.file_manager.filemanager.managers.MediaManager;
 import com.example.file_manager.filemanager.managers.PermissionManager;
 import com.example.file_manager.filemanager.managers.DeviceStorageManager;
+import com.example.file_manager.filemanager.plugins.VideoThumbnailPlugin;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -38,7 +41,8 @@ public class JavaMainActivity extends FlutterActivity {
 
     // 4 threads: enough for concurrent ops (copy + delete + two listings)
     // without starving the device. Increase only with profiling evidence.
-    private final ExecutorService executor = Executors.newFixedThreadPool(4);
+    private final int threadPoolsAtRuntime = Runtime.getRuntime().availableProcessors();
+    private final ExecutorService executor = Executors.newFixedThreadPool(threadPoolsAtRuntime);
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final FileOperations fileOps = new FileOperations();
 
@@ -67,7 +71,6 @@ public class JavaMainActivity extends FlutterActivity {
         new MethodChannel(messenger, CHANNEL).setMethodCallHandler(this::handleCall);
     }
 
-
     public void handleCall(MethodCall call, MethodChannel.Result result) {
         // Run every case on a background thread — never block the main thread
         // with file I/O. Reply is always posted back to mainHandler.
@@ -88,6 +91,7 @@ public class JavaMainActivity extends FlutterActivity {
                     case "getStorageInfo" -> handleStorageInfo(result);
                     case "getMedia" -> handleGetMedia(call, result, context);
                     case "getStorageVolumes" -> handleStorageVolumes(context, result);
+                    case "file", "data" -> handleVideoPlugin(call, result);
                     default -> mainHandler.post(result::notImplemented);
                 }
             } catch (Exception e) {
@@ -99,6 +103,25 @@ public class JavaMainActivity extends FlutterActivity {
     }
 
     // ─── Handlers ────────────────────────────────────────────────────────────
+
+    // Called inside handleCall, which is ALREADY executing on executor
+    private void handleVideoPlugin(MethodCall call, MethodChannel.Result result) {
+        final VideoThumbnailPlugin videoThumbnailPlugin = new VideoThumbnailPlugin();
+        try {
+            Object thumbnail = videoThumbnailPlugin.buildThumbnail(call);
+
+            if (thumbnail != null) {
+                mainHandler.post(() -> result.success(thumbnail));
+            } else {
+                mainHandler.post(result::notImplemented);
+            }
+        } catch (Exception e) {
+            // Safe thread hopping back to main thread for MethodChannel results
+            mainHandler.post(() ->
+                    result.error("THUMBNAIL_ERROR", e.getLocalizedMessage(), null)
+            );
+        }
+    }
 
     private void handleStorageVolumes(Context context, MethodChannel.Result result) {
         final List<Map<String, Object>> deviceStorageManager = DeviceStorageManager.getStorageVolumes(context);
@@ -286,6 +309,15 @@ public class JavaMainActivity extends FlutterActivity {
         });
     }
 
+    /**
+     * Posts a result.error() back to the main thread.
+     * Always use this instead of calling result.error() directly from a
+     * background thread — Flutter will throw a AssertionError otherwise.
+     */
+    private void postError(MethodChannel.Result result, String code, String message) {
+        mainHandler.post(() -> result.error(code, message, null));
+    }
+
     // ─── Android lifecycle callbacks ──────────────────────────────────────────
 
     /**
@@ -312,14 +344,9 @@ public class JavaMainActivity extends FlutterActivity {
         }
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-
-    /**
-     * Posts a result.error() back to the main thread.
-     * Always use this instead of calling result.error() directly from a
-     * background thread — Flutter will throw a AssertionError otherwise.
-     */
-    private void postError(MethodChannel.Result result, String code, String message) {
-        mainHandler.post(() -> result.error(code, message, null));
+    @Override
+    public void detachFromFlutterEngine() {
+        executor.shutdown();
     }
+
 }

@@ -5,6 +5,7 @@ import 'package:file_manager/core/platform/file_channel_error.dart';
 import 'package:file_manager/models/file_item.dart';
 import 'package:file_manager/models/storage_info.dart';
 import 'package:file_manager/models/storage_volume.dart';
+import 'package:file_manager/models/video_thumbnail.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -114,6 +115,29 @@ class FileChannel {
         .cast<Map<Object?, Object?>>()
         .map(FileItem.fromMap)
         .toList());
+  }
+
+Future<String?> fetchFile(VideoThumbnailConfig config) async {
+    if (config.video.isEmpty) return null;
+
+    final result = await _invoke<String>(
+      'file',
+      config.toMap(),
+    );
+
+    return result.fold((l) => null, (r) => r);
+  }
+
+  /// Generates and returns thumbnail binary data in memory as Uint8List.
+  Future<Uint8List?> fetchData(VideoThumbnailConfig config) async {
+    if (config.video.isEmpty) return null;
+
+    final result = await _invoke<Uint8List>(
+      'data',
+      config.toMap(),
+    );
+
+    return result.fold((l) => null, (r) => r);
   }
 
   Future<List<StorageVolume>> getStorageVolumes() async {
