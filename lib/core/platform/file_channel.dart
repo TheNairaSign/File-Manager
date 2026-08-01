@@ -52,7 +52,7 @@ class FileChannel {
       'path': path,
       'page': page,
       'pageSize': pageSize,
-      'sortOrder' : sortOrder
+      'sortOrder': sortOrder,
     });
 
     return result.map((raw) {

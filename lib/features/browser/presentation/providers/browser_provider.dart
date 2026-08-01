@@ -1,3 +1,4 @@
+import 'package:file_manager/core/enums/sort_order.dart';
 import 'package:file_manager/core/platform/permission/permission_service.dart';
 import 'package:file_manager/core/platform/permission/permission_state.dart';
 import 'package:file_manager/models/file_item.dart';
@@ -14,6 +15,7 @@ class BrowserState {
   final FileItem? clipboardItem;
   final bool isCopying;
   final bool isGridView;
+  final SortOrder? sortOrder;
 
   BrowserState({
     required this.currentPath,
@@ -23,6 +25,7 @@ class BrowserState {
     this.clipboardItem,
     this.isCopying = true,
     this.isGridView = false,
+    this.sortOrder,
   });
 
   BrowserState copyWith({
@@ -34,6 +37,7 @@ class BrowserState {
     bool? isCopying,
     bool clearClipboard = false,
     bool? isGridView,
+    SortOrder? sortOrder,
   }) {
     return BrowserState(
       currentPath: currentPath ?? this.currentPath,
@@ -43,6 +47,7 @@ class BrowserState {
       clipboardItem: clearClipboard ? null : (clipboardItem ?? this.clipboardItem),
       isCopying: isCopying ?? this.isCopying,
       isGridView: isGridView ?? this.isGridView,
+      sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 }
@@ -54,7 +59,7 @@ class BrowserNotifier extends StateNotifier<BrowserState> {
   BrowserNotifier(
     this._fileChannel, 
     this.initialPath,
-  ) : super(BrowserState(currentPath: initialPath, items: [])) {
+  ) : super(BrowserState(currentPath: initialPath, items: [], sortOrder: SortOrder.nameAsc)) {
     _init();
   }
 
@@ -106,19 +111,28 @@ class BrowserNotifier extends StateNotifier<BrowserState> {
     await _fileChannel.openAppSettings();
   }
 
-  Future<void> loadDirectory(String path) async {
+  Future<void> loadDirectory(String path, {SortOrder? sortOrder}) async {
+    // Fall back to the currently active sort order so navigation never resets it.
+    final effectiveSort = sortOrder ?? state.sortOrder ?? SortOrder.nameAsc;
     state = state.copyWith(isLoading: true, currentPath: path);
-    // Note: page: 0 is used here for simplicity. Pagination can be added later.
-    final result = await _fileChannel.listDirectory(path: path, page: 0);
+    final result = await _fileChannel.listDirectory(
+      path: path,
+      page: 0,
+      sortOrder: effectiveSort.value,
+    );
     result.fold(
       (error) => state = state.copyWith(isLoading: false, error: error.toString()),
-      (items) => state = state.copyWith(isLoading: false, items: items),
+      (items) => state = state.copyWith(isLoading: false, items: items, sortOrder: effectiveSort),
     );
+  }
+
+  Future<void> setSortOrder(SortOrder order) async {
+    await loadDirectory(state.currentPath, sortOrder: order);
   }
 
   Future<void> refresh() async {
     if (state.currentPath.isNotEmpty) {
-      await loadDirectory(state.currentPath);
+      await loadDirectory(state.currentPath, sortOrder: state.sortOrder);
     } else {
       await _init();
     }
@@ -211,19 +225,21 @@ class BrowserNotifier extends StateNotifier<BrowserState> {
 
   void navigateInto(FileItem item) {
     if (item.isDirectory) {
-      loadDirectory(item.path);
+      // Preserve the current sort order when drilling into a subfolder.
+      loadDirectory(item.path, sortOrder: state.sortOrder);
     }
   }
 
   void navigateUp() {
     if (state.currentPath.isEmpty || state.currentPath == '/') return;
-    
+
     final parts = state.currentPath.split('/');
     if (parts.length > 1) {
       parts.removeLast();
       String parentPath = parts.join('/');
       if (parentPath.isEmpty) parentPath = '/';
-      loadDirectory(parentPath);
+      // Preserve the current sort order when going up.
+      loadDirectory(parentPath, sortOrder: state.sortOrder);
     }
   }
 }

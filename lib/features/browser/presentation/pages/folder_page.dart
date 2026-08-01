@@ -1,4 +1,5 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:file_manager/core/enums/sort_order.dart';
 import 'package:file_manager/features/browser/dialogs/create_folder_dialog.dart';
 import 'package:file_manager/features/browser/presentation/providers/browser_provider.dart';
 import 'package:file_manager/features/browser/presentation/widgets/breadcrumbs_bar.dart';
@@ -79,6 +80,19 @@ class _FolderPageState extends ConsumerState<FolderPage> {
             icon: const Icon(Icons.refresh),
             onPressed: () => notifier.refresh(),
           ),
+          PopupMenuButton<SortOrder>(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort by',
+            onSelected: (order) => notifier.setSortOrder(order),
+            itemBuilder: (_) => [
+              _sortMenuItem(SortOrder.nameAsc,  'Name (A → Z)',   state.sortOrder),
+              _sortMenuItem(SortOrder.nameDesc, 'Name (Z → A)',   state.sortOrder),
+              _sortMenuItem(SortOrder.sizeAsc,  'Size (smallest)', state.sortOrder),
+              _sortMenuItem(SortOrder.sizeDesc, 'Size (largest)',  state.sortOrder),
+              _sortMenuItem(SortOrder.dateAsc,  'Date (oldest)',   state.sortOrder),
+              _sortMenuItem(SortOrder.dateDesc, 'Date (newest)',   state.sortOrder),
+            ],
+          ),
           // IconButton(
           //   icon: const Icon(Icons.create_new_folder),
           //   onPressed: () => showCreateFolderDialog(context, notifier),
@@ -114,6 +128,33 @@ class _FolderPageState extends ConsumerState<FolderPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => showCreateFolderDialog(context, notifier),
         child: const Icon(Icons.create_new_folder),
+      ),
+    );
+  }
+
+  PopupMenuItem<SortOrder> _sortMenuItem(
+    SortOrder order,
+    String label,
+    SortOrder? current,
+  ) {
+    final isActive = current == order;
+    return PopupMenuItem<SortOrder>(
+      value: order,
+      child: Row(
+        children: [
+          Icon(
+            Icons.check,
+            color: isActive ? null : Colors.transparent,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }
