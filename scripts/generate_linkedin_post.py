@@ -1,6 +1,7 @@
 import os
 import subprocess
-import requests
+import json
+from urllib.request import Request, urlopen
 
 # 1. Extract Git Commit info
 commit_msg = subprocess.check_output(
